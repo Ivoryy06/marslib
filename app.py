@@ -92,7 +92,7 @@ class BorrowRequest(db.Model):
     absen = db.Column(db.String(20), nullable=False)
     loan_days = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(50), default="pending")
-    borrowed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    borrowed_at = db.Column(db.DateTime, default=None)
     due_date = db.Column(db.DateTime, default=None)
     returned_at = db.Column(db.DateTime, default=None)
     is_returned = db.Column(db.Boolean, default=False)
@@ -394,13 +394,40 @@ def seed_library_books():
     db.session.commit()
 
 
-with app.app_context():
-    if RESET_DATABASE_ON_BOOT:
-        db.drop_all()
-    db.create_all()
-    ensure_db_schema()
-    seed_library_books()
-    db.session.commit()
+# Database initialization flag
+_db_initialized = False
+
+def initialize_database():
+    """Initialize database schema and seed data. Only runs once on first request."""
+    global _db_initialized
+    if _db_initialized:
+        return
+    
+    try:
+        db.create_all()
+        ensure_db_schema()
+        
+        if RESET_DATABASE_ON_BOOT:
+            # Clear and reseed if requested
+            db.session.query(Book).delete()
+            db.session.commit()
+        
+        seed_library_books()
+        db.session.commit()
+        _db_initialized = True
+    except Exception as e:
+        print(f"Warning: Database initialization failed: {e}")
+        # Don't crash the app if DB init fails; let requests handle it
+
+
+@app.before_request
+def db_init_on_first_request():
+    """Run database initialization on first request."""
+    initialize_database()
+
+
+# Rest of your routes and code follow...
+
 
 
 def allowed_email(email):
