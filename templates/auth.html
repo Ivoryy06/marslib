@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Perpustakaan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="auth-shell">
+    <div class="auth-card auth-card-wide">
+      <div class="auth-tabs">
+        <button class="auth-tab active" type="button" data-auth-tab="login">Masuk</button>
+        <button class="auth-tab" type="button" data-auth-tab="register">Daftar</button>
+      </div>
+
+      <form id="loginForm" class="auth-form active">
+        <label>
+          Email atau username staff
+          <input id="login-email" type="text" placeholder="nama@gmail.com atau staff" required>
+        </label>
+        <label>
+          Password
+          <input id="login-password" type="password" placeholder="Masukkan password" required>
+        </label>
+        <label>
+          Masuk sebagai
+          <select id="login-role">
+            <option value="student">Siswa / Anggota</option>
+            <option value="staff">Staff perpustakaan</option>
+          </select>
+        </label>
+        <button type="submit" class="auth-submit">Masuk</button>
+      </form>
+
+      <form id="registerForm" class="auth-form">
+        <label>
+          Nama lengkap
+          <input id="reg-name" name="name" type="text" placeholder="Nama lengkap" required>
+        </label>
+        <label>
+          Email
+          <input id="reg-email" name="email" type="email" placeholder="contoh@gmail.com atau nama@smamarsudirinibekasi.sch.id" required>
+        </label>
+        <label>
+          Password
+          <input id="reg-password" name="password" type="password" placeholder="Buat password" required>
+        </label>
+
+        <div class="auth-note">Email hanya boleh memakai domain @gmail.com atau @smamarsudirinibekasi.sch.id.</div>
+
+        <div id="gmail-extra" class="gmail-extra" style="display:none;">
+          <label class="check-row">
+            <input id="reg-approval-request" type="checkbox">
+            <span>Ajukan persetujuan staf perpustakaan</span>
+          </label>
+
+          <label class="file-label">
+            <span>Upload identitas SMA Marsudirini Bekasi</span>
+            <input id="reg-id-proof" type="file" accept="image/*,.pdf">
+          </label>
+        </div>
+
+        <button type="submit" class="auth-submit">Daftar</button>
+      </form>
+
+      <div id="auth-message" class="auth-message" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='auth.js') }}"></script>
+</body>
+</html>

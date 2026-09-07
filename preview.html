@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview Perpustakaan Sekolah</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+  <div class="ribbon">Preview mode: <strong>frontend web</strong> — tanpa menjalankan Python.</div>
+
+  <nav class="shelf">
+    <div class="brand">Ruang Baca</div>
+    <button class="tab-btn active" data-view="home">Home</button>
+    <button class="tab-btn" data-view="pinjam">Peminjaman</button>
+    <button class="tab-btn" data-view="karya">Karya</button>
+  </nav>
+
+  <main>
+    <section class="view active" id="view-home">
+      <div class="hero">
+        <div>
+          <h1>Jelajahi rak <em>perpustakaan</em> sekolah.</h1>
+          <p>Semua buku pelajaran, novel, komik, dan koleksi lainnya ada di sini. Cari berdasarkan judul, penulis, atau kategori, lalu ajukan peminjaman langsung dari halaman ini.</p>
+        </div>
+        <div class="index-card">
+          <div class="holes"><span></span><span></span></div>
+          <div class="label">Rekomendasi minggu ini</div>
+          <div class="call mono" id="feature-call">000.00/ABC</div>
+          <h3 id="feature-title">—</h3>
+          <div class="by" id="feature-author">—</div>
+          <div class="cat-tag" id="feature-cat">—</div>
+        </div>
+      </div>
+
+      <div class="cat-row" id="cat-row"></div>
+
+      <div class="search-bar">
+        <input type="text" id="home-search" placeholder="Cari judul buku atau nama penulis…">
+      </div>
+
+      <div class="book-grid" id="book-grid"></div>
+      <div class="empty-note" id="home-empty" style="display:none;">Tidak ada buku yang cocok dengan pencarianmu.</div>
+    </section>
+
+    <section class="view" id="view-pinjam">
+      <h2 class="serif" style="font-size:1.7rem;margin-bottom:4px;">Formulir peminjaman</h2>
+      <p style="opacity:0.75;margin-top:0;margin-bottom:24px;">Lengkapi data di bawah ini. Maksimal masa pinjam adalah 14 hari.</p>
+
+      <div class="borrow-layout">
+        <div class="form-block">
+          <div class="field">
+            <label for="p-nama">Nama lengkap</label>
+            <input type="text" id="p-nama" placeholder="Nama siswa">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="p-kelas">Kelas</label>
+              <select id="p-kelas"></select>
+            </div>
+            <div class="field">
+              <label for="p-absen">No. absen</label>
+              <input type="number" id="p-absen" min="1" max="45" placeholder="Contoh: 12">
+            </div>
+          </div>
+
+          <div class="field book-search-wrap">
+            <label for="p-buku-search">Buku yang dipinjam</label>
+            <input type="text" id="p-buku-search" placeholder="Ketik judul buku untuk mencari…" autocomplete="off">
+            <div class="book-results" id="p-buku-results"></div>
+            <div id="p-buku-selected" style="display:none;"></div>
+          </div>
+
+          <div class="field">
+            <label for="p-lama">Lama peminjaman</label>
+            <div class="slider-wrap">
+              <input type="range" id="p-lama" min="1" max="14" value="7">
+              <span class="slider-val" id="p-lama-val">7 hari</span>
+            </div>
+          </div>
+
+          <button class="submit-btn" id="p-submit">Ajukan peminjaman</button>
+          <div class="form-msg" id="p-msg"></div>
+        </div>
+
+        <div class="card-preview">
+          <div class="stamp">Kartu peminjaman</div>
+          <div class="kv"><span>Nama</span><span id="prev-nama">—</span></div>
+          <div class="kv"><span>Kelas</span><span id="prev-kelas">—</span></div>
+          <div class="kv"><span>No. absen</span><span id="prev-absen">—</span></div>
+          <div class="kv"><span>Buku</span><span id="prev-buku">—</span></div>
+          <div class="kv"><span>No. rak</span><span id="prev-call">—</span></div>
+          <div class="kv"><span>Lama pinjam</span><span id="prev-lama">7 hari</span></div>
+          <div class="kv" style="border-bottom:none;"><span>Kembali sebelum</span><span id="prev-tanggal">—</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-karya">
+      <h2 class="serif" style="font-size:1.7rem;margin-bottom:4px;">Karya tulis sekolah</h2>
+      <p style="opacity:0.75;margin-top:0;margin-bottom:24px;">Kumpulan cerpen, puisi, dan esai karya siswa. Klik "Baca selengkapnya" untuk membuka.</p>
+      <div class="karya-grid" id="karya-grid"></div>
+    </section>
+  </main>
+
+  <div class="modal-bg" id="modal-bg">
+    <div class="modal">
+      <button class="modal-close" id="modal-close">&times;</button>
+      <div class="karya-type" id="modal-type"></div>
+      <h3 id="modal-title"></h3>
+      <div class="by" id="modal-by"></div>
+      <p id="modal-body"></p>
+    </div>
+  </div>
+
+  <footer>Perpustakaan Sekolah · preview web frontend</footer>
+
+  <script src="static/script.js"></script>
+</body>
+</html>

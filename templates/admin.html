@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Perpustakaan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="ribbon">Panel staf perpustakaan · <strong>{{ user.name }}</strong> · akses admin</div>
+
+  <nav class="shelf">
+    <div class="brand">Admin Panel</div>
+    <button class="tab-btn active" data-view="summary">Ringkasan</button>
+    <button class="tab-btn" data-view="approval">Persetujuan</button>
+    <button class="tab-btn" data-view="log">Log</button>
+    <button class="ghost-btn" id="logout-btn" type="button" style="margin-left:auto;">Keluar</button>
+  </nav>
+
+  <main>
+    <section class="view active" id="view-summary">
+      <div class="hero">
+        <div>
+          <h1>Dashboard <em>staff</em> perpustakaan</h1>
+          <p>Pantau jumlah pengguna, aktivitas, serta pendapatan dan pengeluaran sekolah secara real-time.</p>
+        </div>
+        <div class="index-card">
+          <div class="holes"><span></span><span></span></div>
+          <div class="label">Saldo total</div>
+          <div class="call mono">Rp {{ '%.0f'|format(dashboard.income_total - dashboard.outcome_total) }}</div>
+          <h3>Keuangan perpustakaan</h3>
+          <div class="by">Pendapatan: Rp {{ '%.0f'|format(dashboard.income_total) }} · Pengeluaran: Rp {{ '%.0f'|format(dashboard.outcome_total) }}</div>
+        </div>
+      </div>
+
+      <div class="cat-row">
+        <div class="cat-chip active" style="pointer-events:none;">Total pengguna: {{ dashboard.total_users }}</div>
+        <div class="cat-chip active" style="pointer-events:none;">Pending: {{ dashboard.pending_users }}</div>
+        <div class="cat-chip active" style="pointer-events:none;">Disetujui: {{ dashboard.approved_users }}</div>
+        <div class="cat-chip active" style="pointer-events:none;">Staff: {{ dashboard.staff_count }}</div>
+      </div>
+
+      <div class="borrow-layout">
+        <div class="card-preview">
+          <div class="stamp">Keuangan</div>
+          <div class="kv"><span>Pendapatan</span><span class="mono">Rp {{ '%.0f'|format(dashboard.income_total) }}</span></div>
+          <div class="kv"><span>Pengeluaran</span><span class="mono">Rp {{ '%.0f'|format(dashboard.outcome_total) }}</span></div>
+          <div class="kv"><span>Saldo</span><span class="mono">Rp {{ '%.0f'|format(dashboard.current_balance) }}</span></div>
+          <div class="kv"><span>Pinjaman</span><span>{{ dashboard.borrow_total }}</span></div>
+        </div>
+      </div>
+
+      <div class="form-block" style="margin-top:22px;">
+        <h2>Tambah income / outcome</h2>
+        <form id="finance-form">
+          <input id="finance-id" name="id" type="hidden">
+          <div class="field">
+            <label for="finance-entry-type">Tipe</label>
+            <select id="finance-entry-type" name="entry_type" required>
+              <option value="income">Income</option>
+              <option value="outcome">Outcome</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="finance-label">Judul</label>
+            <input id="finance-label" name="label" type="text" placeholder="Contoh: Pendaftaran anggota" required>
+          </div>
+          <div class="field">
+            <label for="finance-amount">Nominal</label>
+            <input id="finance-amount" name="amount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="500000" required>
+          </div>
+          <div class="field">
+            <label for="finance-notes">Catatan</label>
+            <input id="finance-notes" name="notes" type="text" placeholder="Keterangan tambahan">
+          </div>
+          <button class="submit-btn" id="finance-submit-btn" type="submit">Simpan data keuangan</button>
+          <button class="ghost-btn" id="finance-cancel-btn" type="button" style="display:none; margin-top:8px;">Batal edit</button>
+          <div id="finance-message" class="form-msg"></div>
+        </form>
+      </div>
+
+      <div class="form-block" style="margin-top:22px;">
+        <h2>Income & outcome</h2>
+        <div class="selection-bar" style="display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-bottom:12px;">
+          <label style="display:flex; align-items:center; gap:8px;">
+            <input id="select-all-finance" type="checkbox">
+            <span>Pilih semua</span>
+          </label>
+          <button id="bulk-delete-finance" type="button" class="delete-finance-btn">Hapus yang dipilih</button>
+        </div>
+        <div class="staff-queue">
+          {% for item in dashboard.finance_rows %}
+            <div class="approval-item">
+              <div style="display:flex; align-items:flex-start; gap:12px; width:100%;">
+                <input class="finance-select" type="checkbox" value="{{ item.id }}" aria-label="Pilih data keuangan {{ item.label }}">
+                <div style="flex:1;">
+                  <strong>{{ item.label }}</strong><br>
+                  <span>{{ item.notes }}</span>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div class="badge {{ 'ada' if item.entry_type == 'income' else 'pinjam' }}">{{ 'Income' if item.entry_type == 'income' else 'Outcome' }}</div>
+                <div class="mono" style="margin-top:6px;">Rp {{ '%.0f'|format(item.amount) }}</div>
+                <div class="approval-actions" style="margin-top:8px;">
+                  <button class="edit-finance-btn" type="button" data-finance-id="{{ item.id }}" data-finance-type="{{ item.entry_type }}" data-finance-label="{{ item.label }}" data-finance-amount="{{ item.amount }}" data-finance-notes="{{ item.notes }}">Edit</button>
+                  <button class="delete-finance-btn" type="button" data-finance-id="{{ item.id }}">Hapus</button>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="approval-empty">Belum ada data keuangan.</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-block" style="margin-top:22px;">
+        <h2>Log buku pinjaman</h2>
+        <div class="staff-queue">
+          {% for item in dashboard.borrow_logs %}
+            <div class="approval-item">
+              <div>
+                <strong>{{ item.borrower_name }} · {{ item.class_name }} {{ item.absen }}</strong><br>
+                <span>{{ item.book_title }}</span><br>
+                <small>Pinjam: {{ item.borrowed_at }} · Jatuh tempo: {{ item.due_date }} · Dikembalikan: {{ item.returned_at }}</small>
+              </div>
+              <div style="text-align:right;">
+                <div class="badge {{ 'ada' if item.is_returned else 'pinjam' }}">{{ 'Sudah kembali' if item.is_returned else item.status }}</div>
+                <div style="margin-top:6px; opacity:0.7;">{{ item.loan_days }} hari</div>
+              </div>
+            </div>
+          {% else %}
+            <div class="approval-empty">Belum ada log peminjaman.</div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </section>
+
+    <section class="view" id="view-approval">
+      <div class="form-block">
+        <h2>Daftar akun Gmail menunggu persetujuan</h2>
+        <div class="staff-queue" id="approval-queue"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-log">
+      <div class="form-block" style="margin-top:22px;">
+        <h2>Log lengkap</h2>
+        <div class="log-filters" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-bottom:16px;">
+          <div class="field">
+            <label for="log-date-filter">Tanggal</label>
+            <input id="log-date-filter" type="date">
+          </div>
+          <div class="field">
+            <label for="log-type-filter">Kategori</label>
+            <select id="log-type-filter">
+              <option value="all">Semua</option>
+              <option value="activity">Aktivitas</option>
+              <option value="finance">Keuangan</option>
+              <option value="borrow">Peminjaman</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="log-finance-filter">Income / Outcome</label>
+            <select id="log-finance-filter">
+              <option value="all">Semua</option>
+              <option value="income">Income</option>
+              <option value="outcome">Outcome</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="log-sort-filter">Urutkan</label>
+            <select id="log-sort-filter">
+              <option value="newest">Terbaru</option>
+              <option value="oldest">Terlama</option>
+            </select>
+          </div>
+          <div class="field" style="display:flex; align-items:end;">
+            <button id="log-clear-filters" type="button" class="ghost-btn" style="width:100%;">Reset filter</button>
+          </div>
+        </div>
+
+        <div class="staff-queue" id="full-log-list">
+          {% for log in dashboard.activity_logs %}
+            <div class="approval-item log-item" data-log-kind="activity" data-log-type="activity" data-log-date="{{ log.created_at[:10] }}" data-log-ts="{{ log.created_at }}">
+              <div>
+                <strong>{{ log.event }}</strong><br>
+                <span>{{ log.details }}</span>
+              </div>
+              <small>{{ log.created_at }}</small>
+            </div>
+          {% endfor %}
+
+          {% for entry in dashboard.all_finance_logs %}
+            <div class="approval-item log-item" data-log-kind="finance" data-log-type="{{ entry.entry_type }}" data-log-date="{{ entry.created_at[:10] }}" data-log-ts="{{ entry.created_at }}">
+              <div>
+                <strong>{{ entry.label }}</strong><br>
+                <span>{{ entry.notes }}</span>
+              </div>
+              <div style="text-align:right;">
+                <div class="badge {{ 'ada' if entry.entry_type == 'income' else 'pinjam' }}">{{ entry.entry_type }}</div>
+                <div class="mono" style="margin-top:6px;">Rp {{ '%.0f'|format(entry.amount) }}</div>
+                <small style="display:block; margin-top:6px;">{{ entry.created_at }}</small>
+              </div>
+            </div>
+          {% endfor %}
+
+          {% for item in dashboard.all_borrow_logs %}
+            <div class="approval-item log-item" data-log-kind="borrow" data-log-type="borrow" data-log-date="{{ item.created_at[:10] }}" data-log-ts="{{ item.created_at }}">
+              <div>
+                <strong>{{ item.borrower_name }} · {{ item.book_title }}</strong><br>
+                <span>{{ item.class_name }} {{ item.absen }} · {{ item.status }} · Jatuh tempo: {{ item.due_date }}</span>
+              </div>
+              <div style="text-align:right;">
+                <div class="badge {{ 'ada' if item.status == 'returned' else 'pinjam' }}">{{ item.status }}</div>
+                <small style="display:block; margin-top:6px;">{{ item.borrowed_at }} - {{ item.returned_at }}</small>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='admin.js') }}"></script>
+</body>
+</html>

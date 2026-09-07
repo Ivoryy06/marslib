@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Setup Perpustakaan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="auth-shell">
+    <div class="auth-card auth-card-wide">
+      <div class="auth-tabs">
+        <button class="auth-tab active" type="button" disabled>Setup Staff</button>
+      </div>
+
+      <form id="staffSetupForm" class="auth-form active">
+        <div class="auth-note">
+          Akun setup staff ini hanya dipakai satu kali di perangkat ini untuk membuat akun staff resmi. Setelah dipakai, akun disposable tidak bisa digunakan lagi.
+        </div>
+
+        <label>
+          Email staff baru
+          <input id="target-email" name="target_email" type="email" placeholder="contoh@smamarsudirinibekasi.sch.id" required>
+        </label>
+
+        <label>
+          Nama staff baru
+          <input id="staff-name" name="staff_name" type="text" placeholder="Nama staff" required>
+        </label>
+
+        <label>
+          Password baru
+          <input id="staff-password" name="password" type="password" placeholder="Minimal 6 karakter" required>
+        </label>
+
+        <button type="submit" class="auth-submit">Buat akun staff</button>
+      </form>
+
+      <div id="auth-message" class="auth-message" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('staffSetupForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const message = document.getElementById('auth-message');
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch('/api/staff/upgrade', {
+          method: 'POST',
+          credentials: 'same-origin',
+          body: formData
+        });
+        const data = await response.json();
+        message.className = 'auth-message ' + (response.ok ? 'success' : 'error');
+        message.textContent = data.message || 'Terjadi kesalahan.';
+        if (response.ok && data.redirect) {
+          window.location.href = data.redirect;
+        }
+      } catch (error) {
+        message.className = 'auth-message error';
+        message.textContent = 'Gagal membuat akun staff.';
+      }
+    });
+  </script>
+</body>
+</html>
