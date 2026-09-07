@@ -1,4 +1,4 @@
-# KKA - Perpustakaan Sekolah
+# PROJECT MARSLIB
 
 A Flask-based school library management system with Gramedia catalog integration.
 
