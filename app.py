@@ -223,13 +223,13 @@ def ensure_db_schema():
 
     user_columns = {column["name"] for column in inspector.get_columns("user")}
     column_additions = {
-        "role": "ALTER TABLE user ADD COLUMN role VARCHAR(30) NOT NULL DEFAULT 'student'",
-        "last_login_at": "ALTER TABLE user ADD COLUMN last_login_at DATETIME",
-        "status": "ALTER TABLE user ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pendingApproval'",
-        "approval_requested": "ALTER TABLE user ADD COLUMN approval_requested BOOLEAN DEFAULT 0",
-        "id_proof_name": "ALTER TABLE user ADD COLUMN id_proof_name VARCHAR(200) DEFAULT ''",
-        "device_hash": "ALTER TABLE user ADD COLUMN device_hash VARCHAR(120) DEFAULT ''",
-        "setup_used": "ALTER TABLE user ADD COLUMN setup_used BOOLEAN DEFAULT 0",
+        "role": "ALTER TABLE \"user\" ADD COLUMN role VARCHAR(30) NOT NULL DEFAULT 'student'",
+        "last_login_at": "ALTER TABLE \"user\" ADD COLUMN last_login_at DATETIME",
+        "status": "ALTER TABLE \"user\" ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pendingApproval'",
+        "approval_requested": "ALTER TABLE \"user\" ADD COLUMN approval_requested BOOLEAN DEFAULT 0",
+        "id_proof_name": "ALTER TABLE \"user\" ADD COLUMN id_proof_name VARCHAR(200) DEFAULT ''",
+        "device_hash": "ALTER TABLE \"user\" ADD COLUMN device_hash VARCHAR(120) DEFAULT ''",
+        "setup_used": "ALTER TABLE \"user\" ADD COLUMN setup_used BOOLEAN DEFAULT 0",
     }
 
     for column_name, ddl in column_additions.items():
@@ -238,12 +238,12 @@ def ensure_db_schema():
                 conn.execute(text(ddl))
 
     with db.session.begin():
-        db.session.execute(text("UPDATE user SET role = 'student' WHERE role IS NULL OR role = ''"))
-        db.session.execute(text("UPDATE user SET status = 'pendingApproval' WHERE status IS NULL OR status = ''"))
-        db.session.execute(text("UPDATE user SET approval_requested = 0 WHERE approval_requested IS NULL"))
-        db.session.execute(text("UPDATE user SET setup_used = 0 WHERE setup_used IS NULL"))
-        db.session.execute(text("UPDATE user SET device_hash = '' WHERE device_hash IS NULL"))
-        db.session.execute(text("UPDATE user SET id_proof_name = '' WHERE id_proof_name IS NULL"))
+        db.session.execute(text("UPDATE \"user\" SET role = 'student' WHERE role IS NULL OR role = ''"))
+        db.session.execute(text("UPDATE \"user\" SET status = 'pendingApproval' WHERE status IS NULL OR status = ''"))
+        db.session.execute(text("UPDATE \"user\" SET approval_requested = 0 WHERE approval_requested IS NULL"))
+        db.session.execute(text("UPDATE \"user\" SET setup_used = 0 WHERE setup_used IS NULL"))
+        db.session.execute(text("UPDATE \"user\" SET device_hash = '' WHERE device_hash IS NULL"))
+        db.session.execute(text("UPDATE \"user\" SET id_proof_name = '' WHERE id_proof_name IS NULL"))
 
     if inspector.has_table("book"):
         book_columns = {column["name"] for column in inspector.get_columns("book")}
