@@ -17,15 +17,19 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies into package folder
+      - name: Create virtual environment and install dependencies
         run: |
-          pip install --target="./.python_packages/lib/site-packages" -r requirements.txt
+          python -m venv antenv
+          source antenv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
         with:
           name: python-app
           path: .
+          include-hidden-files: true
 
   deploy:
     runs-on: ubuntu-latest
@@ -35,7 +39,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: python-app
-      
+          
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
