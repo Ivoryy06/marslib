@@ -20,20 +20,13 @@ jobs:
         with:
           python-version: '3.12'
 
-      # Create virtual environment and install packages locally
-      - name: Create venv and install dependencies
-        run: |
-          python -m venv antenv
-          source antenv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      # Include antenv in the artifact bundle so Azure receives all packages
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: .
+          path: |
+            .
+            !antenv/
 
   deploy:
     runs-on: ubuntu-latest
