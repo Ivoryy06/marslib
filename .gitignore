@@ -9,6 +9,7 @@ __pycache__/
 .venv/
 venv/
 env/
+antenv/
 
 # Flask instance folder (contains SQLite DB and secrets)
 instance/
