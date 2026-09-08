@@ -1,5 +1,5 @@
- name: Build and deploy Python app to Azure Web App - marslib
-  on:
+name: Build and deploy Python app to Azure Web App - marslib
+  "on":
     push:
       branches:
         - main
