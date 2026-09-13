@@ -13,10 +13,20 @@ from gramedia_client import FALLBACK_BOOK_CATALOG, REQUEST_DELAY_SECONDS, RETRY_
 
 app = Flask(__name__)
 FORCE_HTTPS = os.getenv("FORCE_HTTPS", "0").lower() in {"1", "true", "yes", "on"}
+IS_AZURE_APP_SERVICE = bool(os.getenv("WEBSITE_SITE_NAME"))
+if IS_AZURE_APP_SERVICE:
+    DATA_FOLDER = os.getenv("AZURE_DATA_FOLDER", "/home/site/data")
+else:
+    DATA_FOLDER = os.path.join(os.path.dirname(__file__), "instance")
+os.makedirs(DATA_FOLDER, exist_ok=True)
+
+database_url = os.getenv("DATABASE_URL")
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
 app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY") or os.urandom(32).hex()
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///perpustakaan.db")
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url or f"sqlite:///{os.path.join(DATA_FOLDER, 'perpustakaan.db')}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(__file__), "uploads")
+app.config["UPLOAD_FOLDER"] = os.getenv("UPLOAD_FOLDER", os.path.join(DATA_FOLDER, "uploads"))
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = FORCE_HTTPS
@@ -287,7 +297,16 @@ def ensure_db_schema():
 
     with db.session.begin():
         db.session.execute(text("UPDATE borrow_request SET borrowed_at = created_at WHERE borrowed_at IS NULL"))
-        db.session.execute(text("UPDATE borrow_request SET due_date = datetime(created_at, '+' || loan_days || ' day') WHERE due_date IS NULL"))
+        borrow_rows = db.session.execute(
+            text("SELECT id, borrowed_at, created_at, loan_days FROM borrow_request WHERE due_date IS NULL")
+        ).mappings()
+        for borrow_row in borrow_rows:
+            start_date = borrow_row["borrowed_at"] or borrow_row["created_at"]
+            due_date = start_date + timedelta(days=borrow_row["loan_days"])
+            db.session.execute(
+                text("UPDATE borrow_request SET due_date = :due_date WHERE id = :id"),
+                {"due_date": due_date, "id": borrow_row["id"]},
+            )
         db.session.execute(text("UPDATE borrow_request SET is_returned = 0 WHERE is_returned IS NULL"))
 
 
@@ -425,6 +444,11 @@ def enforce_https_redirect():
         return None
     url = request.url.replace("http://", "https://", 1)
     return redirect(url, code=301)
+
+
+@app.get("/healthz")
+def health_check():
+    return jsonify({"status": "ok"})
 
 
 def generate_device_hash():
