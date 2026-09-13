@@ -21,8 +21,11 @@ else:
 os.makedirs(DATA_FOLDER, exist_ok=True)
 
 database_url = os.getenv("DATABASE_URL")
-if database_url and database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
+if database_url:
+    for scheme in ("postgres://", "postgresql://"):
+        if database_url.startswith(scheme):
+            database_url = database_url.replace(scheme, "postgresql+psycopg://", 1)
+            break
 app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY") or os.urandom(32).hex()
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url or f"sqlite:///{os.path.join(DATA_FOLDER, 'perpustakaan.db')}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
