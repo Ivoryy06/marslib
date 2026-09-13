@@ -22,17 +22,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Zip artifact for deployment
+        run: zip -r release.zip . --exclude "*.git*" --exclude ".venv/*" --exclude "antenv/*" --exclude "__pycache__/*" --exclude "instance/*"
+
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: |
-            .
-            !antenv/
-            !.venv/
-            !venv/
-            !__pycache__/
-          include-hidden-files: true
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -43,13 +40,16 @@ jobs:
         with:
           name: python-app
 
-      - name: Wait for SCM to stabilize
-        run: sleep 20
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
-        with:
-          app-name: 'marslib'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D389E11CA672464AA363BC06DBE1A611 }}
-          package: .
+        run: |
+          az webapp deploy \
+            --name marslib \
+            --resource-group marslib_group \
+            --src-path release.zip \
+            --type zip \
+            --async false
