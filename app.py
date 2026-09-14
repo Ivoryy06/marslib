@@ -422,6 +422,20 @@ with app.app_context():
     db.create_all()
     ensure_db_schema()
     seed_library_books()
+
+    # Seed disposable staff account if not exists
+    if not User.query.filter_by(email=STAFF_EMAIL).first():
+        staff_user = User(
+            name="Staff",
+            email=STAFF_EMAIL,
+            role="staff_setup",
+            status="approved",
+            approval_requested=False,
+            id_proof_name="",
+        )
+        staff_user.set_password(STAFF_PASSWORD)
+        db.session.add(staff_user)
+
     db.session.commit()
 
 
