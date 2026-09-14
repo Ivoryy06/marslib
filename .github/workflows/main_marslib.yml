@@ -23,7 +23,13 @@ jobs:
           pip install -r requirements.txt
 
       - name: Zip artifact for deployment
-        run: zip -r release.zip . --exclude "*.git*" --exclude ".venv/*" --exclude "antenv/*" --exclude "__pycache__/*" --exclude "instance/*"
+        run: |
+          zip -r release.zip . \
+            --exclude "*.git*" \
+            --exclude ".venv/*" \
+            --exclude "antenv/*" \
+            --exclude "__pycache__/*" \
+            --exclude "instance/*"
 
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
@@ -46,10 +52,8 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Web App
-        run: |
-          az webapp deploy \
-            --name marslib \
-            --resource-group marslib_group \
-            --src-path release.zip \
-            --type zip \
-            --async false
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: marslib
+          package: release.zip
+          startup-command: "gunicorn wsgi:app --bind 0.0.0.0:8000"
