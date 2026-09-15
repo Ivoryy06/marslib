@@ -510,13 +510,12 @@ def staff_setup_page():
     user = user_from_session()
     if not user or user.role != "staff_setup":
         return redirect(url_for("auth_page"))
-    if user.setup_used and not session.get("staff_setup_active"):
-        return redirect(url_for("auth_page"))
     current_device = generate_device_hash()
     if user.device_hash and user.device_hash != current_device:
         user.device_hash = current_device
         db.session.commit()
     return render_template("staff_setup.html", user=user)
+
 
 
 @app.route("/admin")
