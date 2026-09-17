@@ -44,6 +44,8 @@ db = SQLAlchemy(app)
 ALLOWED_EMAIL_DOMAINS = ("@gmail.com", "@smamarsudirinibekasi.sch.id")
 STAFF_EMAIL = "staff"
 STAFF_PASSWORD = "admin123"
+STAFF_TEST_EMAIL = "staff_test"
+STAFF_TEST_PASSWORD = "admin123"
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -436,12 +438,27 @@ with app.app_context():
         staff_user.set_password(STAFF_PASSWORD)
         db.session.add(staff_user)
 
+    # Seed permanent staff account if not exists
+    if not User.query.filter_by(email=STAFF_TEST_EMAIL).first():
+        staff_test_user = User(
+            name="Staff Test",
+            email=STAFF_TEST_EMAIL,
+            role="staff",
+            status="approved",
+            approval_requested=False,
+            id_proof_name="",
+        )
+        staff_test_user.set_password(STAFF_TEST_PASSWORD)
+        db.session.add(staff_test_user)
+
     db.session.commit()
 
 
 def allowed_email(email):
     value = (email or "").strip().lower()
     if value == STAFF_EMAIL:
+        return True
+    if value == STAFF_TEST_EMAIL:
         return True
     return any(value.endswith(domain) for domain in ALLOWED_EMAIL_DOMAINS)
 
