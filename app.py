@@ -124,6 +124,19 @@ class Karya(db.Model):
     teaser = db.Column(db.Text, nullable=False)
     body = db.Column(db.Text, nullable=False)
 
+class BookRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    requester_name = db.Column(db.String(150), nullable=False)
+    class_name = db.Column(db.String(50), nullable=False)
+    absen = db.Column(db.String(20), nullable=False)
+    book_title = db.Column(db.String(300), nullable=False)
+    notes = db.Column(db.Text, nullable=False, default="")
+    status = db.Column(db.String(50), default="pending")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='book_requests')
+
 def _normalize_catalog_title(value):
     cleaned = (value or "").replace("_", " ")
     cleaned = re.sub(r"(?i)(^|[\s\-:;,_])file(?=$|[\s\-:;,_])", " ", cleaned)
@@ -158,9 +171,11 @@ def build_dashboard_summary():
     recent_logs = ActivityLog.query.order_by(ActivityLog.created_at.desc()).limit(8).all()
     finance_rows = FinanceEntry.query.order_by(FinanceEntry.created_at.desc()).limit(8).all()
     borrow_logs = BorrowRequest.query.order_by(BorrowRequest.created_at.desc()).limit(8).all()
+    book_request_logs = BookRequest.query.order_by(BookRequest.created_at.desc()).limit(8).all()
     full_activity_logs = ActivityLog.query.order_by(ActivityLog.created_at.desc()).all()
     full_finance_logs = FinanceEntry.query.order_by(FinanceEntry.created_at.desc()).all()
     full_borrow_logs = BorrowRequest.query.order_by(BorrowRequest.created_at.desc()).all()
+    full_book_request_logs = BookRequest.query.order_by(BookRequest.created_at.desc()).all()
 
     def fmt_dt(value):
         return value.strftime("%d %b %Y") if value else "-"
@@ -201,6 +216,16 @@ def build_dashboard_summary():
             "is_returned": bool(item.is_returned),
             "created_at": item.created_at.strftime("%d %b %Y %H:%M")
         } for item in borrow_logs],
+        "book_request_logs": [{
+            "id": item.id,
+            "requester_name": item.requester_name,
+            "class_name": item.class_name,
+            "absen": item.absen,
+            "book_title": item.book_title,
+            "notes": item.notes,
+            "status": item.status,
+            "created_at": item.created_at.strftime("%d %b %Y %H:%M")
+        } for item in book_request_logs],
         "activity_logs": [{
             "id": item.id,
             "event": item.event,
@@ -227,7 +252,17 @@ def build_dashboard_summary():
             "due_date": fmt_dt(item.due_date or (item.borrowed_at or item.created_at) + timedelta(days=item.loan_days)),
             "returned_at": fmt_dt(item.returned_at),
             "created_at": item.created_at.strftime("%d %b %Y %H:%M")
-        } for item in full_borrow_logs]
+        } for item in full_borrow_logs],
+        "all_book_request_logs": [{
+            "id": item.id,
+            "requester_name": item.requester_name,
+            "class_name": item.class_name,
+            "absen": item.absen,
+            "book_title": item.book_title,
+            "notes": item.notes,
+            "status": item.status,
+            "created_at": item.created_at.strftime("%d %b %Y %H:%M")
+        } for item in full_book_request_logs]
     }
 
 
@@ -924,6 +959,43 @@ def api_borrow():
     db.session.commit()
 
     return jsonify({"ok": True, "message": f"Peminjaman buku '{book.title}' berhasil diajukan."})
+
+
+@app.route("/api/book-request", methods=["POST"])
+def api_book_request():
+    user = user_from_session()
+    if not user:
+        return jsonify({"ok": False, "message": "Silakan masuk terlebih dahulu."}), 401
+
+    data = request.get_json(silent=True) or {}
+    requester_name = (data.get("requester_name") or "").strip()
+    class_name = (data.get("class_name") or "").strip()
+    absen = (data.get("absen") or "").strip()
+    book_title = (data.get("book_title") or "").strip()
+    notes = (data.get("notes") or "").strip()
+
+    if not requester_name or not class_name or not absen or not book_title:
+        return jsonify({"ok": False, "message": "Lengkapi seluruh data permintaan buku."}), 400
+
+    book_request = BookRequest(
+        user_id=user.id,
+        requester_name=requester_name,
+        class_name=class_name,
+        absen=absen,
+        book_title=book_title,
+        notes=notes,
+        status="pending",
+    )
+    db.session.add(book_request)
+    db.session.commit()
+
+    record_activity(
+        user.id,
+        "Permintaan Buku Baru",
+        f"{requester_name} ({class_name}, absen {absen}) meminta buku '{book_title}'."
+    )
+
+    return jsonify({"ok": True, "message": "Permintaan buku berhasil dikirim ke staf perpustakaan."})
 
 
 @app.route("/api/staff/upgrade", methods=["POST"])
