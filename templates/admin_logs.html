@@ -33,6 +33,7 @@
               <option value="activity">Aktivitas</option>
               <option value="finance">Keuangan</option>
               <option value="borrow">Peminjaman</option>
+              <option value="request">Permintaan Buku</option>
             </select>
           </div>
           <div class="field">
@@ -89,6 +90,19 @@
               <div style="text-align:right;">
                 <div class="badge {{ 'ada' if item.status == 'returned' else 'pinjam' }}">{{ item.status }}</div>
                 <small style="display:block; margin-top:6px;">{{ item.borrowed_at }} - {{ item.returned_at }}</small>
+              </div>
+            </div>
+          {% endfor %}
+
+          {% for item in dashboard.all_book_request_logs %}
+            <div class="approval-item log-item" data-log-kind="request" data-log-type="request" data-log-date="{{ item.created_at[:10] if item.created_at is string else item.created_at.strftime('%Y-%m-%d') }}" data-log-ts="{{ item.created_at.strftime('%Y-%m-%dT%H:%M:%S') if item.created_at is not string else item.created_at }}">
+              <div>
+                <strong>{{ item.requester_name }} · {{ item.book_title }}</strong><br>
+                <span>{{ item.class_name }} {{ item.absen }}{% if item.notes %} · {{ item.notes }}{% endif %}</span>
+              </div>
+              <div style="text-align:right;">
+                <div class="badge pinjam">{{ item.status }}</div>
+                <small style="display:block; margin-top:6px;">{{ item.created_at }}</small>
               </div>
             </div>
           {% endfor %}
