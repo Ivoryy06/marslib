@@ -48,6 +48,10 @@
 
     <div class="book-grid" id="book-grid"></div>
     <div class="empty-note" id="home-empty" style="display:none;">Tidak ada buku yang cocok dengan pencarianmu.</div>
+
+    <div class="request-book-trigger">
+      <button type="button" id="open-book-request-btn" class="ghost-btn">Tidak menemukan buku yang ingin di pinjam?</button>
+    </div>
   </section>
 
   <section class="view" id="view-pinjam">
@@ -118,6 +122,40 @@
     <h3 id="modal-title"></h3>
     <div class="by" id="modal-by"></div>
     <p id="modal-body"></p>
+  </div>
+</div>
+
+<div class="modal-bg" id="book-request-modal-bg">
+  <div class="modal">
+    <button class="modal-close" id="book-request-modal-close" type="button">&times;</button>
+    <h3>Minta buku yang belum ada</h3>
+    <p style="opacity:0.75; font-size:0.9rem; margin-top:0;">Isi data di bawah ini. Permintaanmu akan langsung masuk ke staf perpustakaan.</p>
+
+    <div class="field">
+      <label for="br-nama">Nama lengkap</label>
+      <input type="text" id="br-nama" placeholder="Nama siswa">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="br-kelas">Kelas</label>
+        <select id="br-kelas"></select>
+      </div>
+      <div class="field">
+        <label for="br-absen">No. absen</label>
+        <input type="number" id="br-absen" min="1" max="45" placeholder="Contoh: 12">
+      </div>
+    </div>
+    <div class="field">
+      <label for="br-judul">Judul buku yang dicari</label>
+      <input type="text" id="br-judul" placeholder="Judul buku">
+    </div>
+    <div class="field">
+      <label for="br-catatan">Catatan (opsional)</label>
+      <input type="text" id="br-catatan" placeholder="Penulis, edisi, atau info tambahan lainnya">
+    </div>
+
+    <button class="submit-btn" id="br-submit" type="button">Kirim permintaan</button>
+    <div class="form-msg" id="br-msg"></div>
   </div>
 </div>
 

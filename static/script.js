@@ -140,7 +140,6 @@
   }
 
   function populateKelas() {
-    const sel = document.getElementById("p-kelas");
     const levels = ["10","11","12"];
     const letters = "ABCDEFGHI".split("");
     let options = `<option value="">Pilih kelas</option>`;
@@ -151,7 +150,11 @@
       });
     });
 
-    sel.innerHTML = options;
+    const sel = document.getElementById("p-kelas");
+    if (sel) sel.innerHTML = options;
+
+    const brSel = document.getElementById("br-kelas");
+    if (brSel) brSel.innerHTML = options;
   }
 
   function selectBookForBorrow(book) {
@@ -367,6 +370,87 @@
     modalBg.addEventListener("click", (event) => {
       if (event.target === modalBg) {
         modalBg.classList.remove("active");
+      }
+    });
+  }
+
+  const bookRequestModalBg = document.getElementById("book-request-modal-bg");
+  const openBookRequestBtn = document.getElementById("open-book-request-btn");
+  const bookRequestModalClose = document.getElementById("book-request-modal-close");
+  const brSubmitButton = document.getElementById("br-submit");
+
+  if (openBookRequestBtn && bookRequestModalBg) {
+    openBookRequestBtn.addEventListener("click", () => {
+      bookRequestModalBg.classList.add("active");
+    });
+  }
+
+  if (bookRequestModalClose && bookRequestModalBg) {
+    bookRequestModalClose.addEventListener("click", () => {
+      bookRequestModalBg.classList.remove("active");
+    });
+    bookRequestModalBg.addEventListener("click", (event) => {
+      if (event.target === bookRequestModalBg) {
+        bookRequestModalBg.classList.remove("active");
+      }
+    });
+  }
+
+  if (brSubmitButton) {
+    brSubmitButton.addEventListener("click", async () => {
+      const namaInput = document.getElementById("br-nama");
+      const kelasInput = document.getElementById("br-kelas");
+      const absenInput = document.getElementById("br-absen");
+      const judulInput = document.getElementById("br-judul");
+      const catatanInput = document.getElementById("br-catatan");
+      const msg = document.getElementById("br-msg");
+
+      if (!namaInput || !kelasInput || !absenInput || !judulInput || !msg) return;
+
+      const nama = namaInput.value.trim();
+      const kelas = kelasInput.value;
+      const absen = absenInput.value;
+      const judul = judulInput.value.trim();
+      const catatan = catatanInput ? catatanInput.value.trim() : "";
+
+      if (!nama || !kelas || !absen || !judul) {
+        msg.style.color = "var(--maroon-dark)";
+        msg.textContent = "Lengkapi nama, kelas, no. absen, dan judul buku terlebih dahulu.";
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/book-request", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            requester_name: nama,
+            class_name: kelas,
+            absen,
+            book_title: judul,
+            notes: catatan
+          })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "Permintaan gagal dikirim");
+
+        msg.style.color = "var(--sage)";
+        msg.textContent = result.message;
+        namaInput.value = "";
+        kelasInput.value = "";
+        absenInput.value = "";
+        judulInput.value = "";
+        if (catatanInput) catatanInput.value = "";
+
+        setTimeout(() => {
+          bookRequestModalBg.classList.remove("active");
+          msg.textContent = "";
+        }, 1400);
+      } catch (error) {
+        msg.style.color = "var(--maroon-dark)";
+        msg.textContent = error.message;
       }
     });
   }
