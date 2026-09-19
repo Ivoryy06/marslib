@@ -1068,7 +1068,7 @@ def api_approval_queue():
             "status": user.status,
             "approval_requested": user.approval_requested,
             "id_proof_name": user.id_proof_name
-        } for user in users if user.status in ("pendingApproval", "rejected")]
+        } for user in users if user.status == "pendingApproval"]
     })
 
 
