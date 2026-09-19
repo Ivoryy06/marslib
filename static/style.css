@@ -663,6 +663,17 @@
   }
   .modal-close:hover{ background:var(--maroon); color:var(--paper); }
 
+  .request-book-trigger{
+    text-align:center;
+    margin-top:28px;
+    padding-top:20px;
+    border-top:1px dashed var(--line);
+  }
+  .request-book-trigger .ghost-btn{
+    font-size:0.85rem;
+    font-weight:600;
+  }
+
   footer{
     text-align:center; padding:24px; font-size:0.78rem; opacity:0.55;
   }
