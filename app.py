@@ -3,7 +3,7 @@ import re
 import time
 from datetime import datetime, timedelta
 from uuid import uuid4
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -1053,6 +1053,14 @@ def api_staff_upgrade():
     return jsonify({"ok": True, "message": "Akun staff berhasil dibuat.", "redirect": url_for("admin_page")})
 
 
+@app.route("/uploads/<path:filename>")
+def serve_upload(filename):
+    staff = user_from_session()
+    if not staff or staff.role != "staff":
+        return jsonify({"ok": False, "message": "Akses ditolak."}), 403
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+
 @app.route("/api/approval-queue")
 def api_approval_queue():
     staff = user_from_session()
@@ -1067,7 +1075,8 @@ def api_approval_queue():
             "email": user.email,
             "status": user.status,
             "approval_requested": user.approval_requested,
-            "id_proof_name": user.id_proof_name
+            "id_proof_name": user.id_proof_name,
+            "id_proof_url": url_for("serve_upload", filename=user.id_proof_name) if user.id_proof_name else None
         } for user in users if user.status == "pendingApproval"]
     })
 

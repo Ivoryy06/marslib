@@ -13,6 +13,39 @@
   const logSortFilter = document.getElementById("log-sort-filter");
   const logClearFiltersBtn = document.getElementById("log-clear-filters");
 
+  const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg", "avif", "heic", "heif", "tiff", "tif", "ico"]);
+
+  function getFileExtension(name) {
+    if (!name) return "";
+    const parts = name.split(".");
+    return parts.length > 1 ? parts.pop().toLowerCase() : "";
+  }
+
+  function renderIdProof(user) {
+    if (!user.id_proof_name || !user.id_proof_url) {
+      return "<small>Permintaan persetujuan via Gmail (tanpa lampiran)</small>";
+    }
+
+    const ext = getFileExtension(user.id_proof_name);
+    const isImage = IMAGE_EXTENSIONS.has(ext);
+
+    if (isImage) {
+      return `
+        <a href="${user.id_proof_url}" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin-top:6px;">
+          <img src="${user.id_proof_url}" alt="Identitas ${user.name}" loading="lazy"
+               style="max-width:140px; max-height:140px; border-radius:6px; border:1px solid var(--line); object-fit:cover; display:block;">
+        </a>
+        <small style="display:block; margin-top:4px;">Klik gambar untuk memperbesar</small>
+      `;
+    }
+
+    return `
+      <a href="${user.id_proof_url}" target="_blank" rel="noopener noreferrer" class="ghost-btn" style="display:inline-block; margin-top:6px; text-decoration:none;">
+        Lihat lampiran (${ext ? ext.toUpperCase() : "file"})
+      </a>
+    `;
+  }
+
   function getSelectedFinanceIds() {
     return Array.from(document.querySelectorAll(".finance-select:checked")).map((checkbox) => Number(checkbox.value));
   }
@@ -79,7 +112,7 @@
           <div>
             <strong>${user.name}</strong><br>
             <span>${user.email}</span><br>
-            <small>${user.id_proof_name ? "Identitas terlampir: " + user.id_proof_name : "Permintaan persetujuan via Gmail"}</small>
+            ${renderIdProof(user)}
           </div>
           <div class="approval-actions">
             <button class="approve-btn" data-action="approve" data-user-id="${user.id}">Setujui</button>
